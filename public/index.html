@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Demo med Go (Eventdriven)</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+        }
+        #gradient {
+            width: 100vw;
+            height: 100vmin;
+        }
+        #controls {
+          opacity: 0;
+        }
+       #output {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+        } 
+    </style>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <!-- gsap -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+</head>
+<body>
+    
+    <div x-data="gradientComponent()" class="gradient-container">
+        <div x-ref="gradient" id="gradient"></div>
+        <div id="controls" style="position: fixed; top: 10px; left: 10px; color: #fff;">
+            <button @click="decreaseColors">-</button>
+            <span x-text="colors.length - 2"></span>
+            <button @click="increaseColors">+</button>
+        </div>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        if (typeof(EventSource) !== "undefined") {
+            var source = new EventSource("/sse");
+    
+            source.onmessage = function(event) {
+                // Kolla om meddelandet börjar med "clients:"
+                if (event.data.startsWith("clients:")) {
+                    var clientCount = event.data.split(":")[1].trim();
+                    console.log("Antal anslutna klienter:", clientCount);
+                    document.dispatchEvent(new CustomEvent('clientCount', {detail: clientCount}));
+                } else {
+                    document.getElementById("result").innerHTML += event.data + "<br>";
+                }
+            };
+    
+            source.onerror = function(event) {
+                console.error("SSE-fel:", event);
+            };
+        } else {
+            document.getElementById("result").innerHTML = "Tyvärr, din webbläsare stöder inte Server-Sent Events.";
+        }
+    </script>
+    <script>
+        function gradientComponent() {
+            return {
+                palette: [
+                    '#797d62', // 1
+                    '#9b9b7a', // 2
+                    '#baa587', // 3
+                    '#d9ae94', // 4
+                    '#f1dca7', // 5
+                    '#ffcb69', // 6
+                    '#e8ac65', // 7
+                    '#d08c60', // 8
+                    '#b58463', // 9
+                    '#997b66'  // 10
+                ],
+                colors: [{color: '#797d62', percent: 0}, {color: '#797d62', percent: 50}], // Initiera med första färgen två gånger
+    
+                // Lägg till färger i ordning från paletten
+                increaseColors() {
+                    if (this.colors.length - 1 < this.palette.length) {
+                        // Skapa ett objekt för att animera gradienten
+                        const gradientObj = {
+                            // Startvärde för procent (100% dividerat på antal nuvvarande färger)
+                            percent: 100 / this.colors.length,
+                            // Startvärde för ny färg är alltid första färgen
+                            newColor: this.colors[0].color
+                        }
+                        // hämta en färg från paletten
+                        const nextColor = this.palette[this.colors.length - 1];
+                        // Lägg till färgen i 
+                        this.colors.splice(1, 0, {color: nextColor, percent: 100 / this.colors.length});
+    
+                        gsap.to(gradientObj, {
+                            // Slutvärde är nya längden på färg-arrayen
+                            percent:  100 / this.colors.length,
+                            // Slutvärde för ny färg är färgen som lades till
+                            newColor: nextColor,
+                            duration: 1,
+                            onUpdate: () => {
+                                // Uppdatera gradienten
+                                
+                                // for-loop för att uppdatera alla färger utom [1] 
+                                for (let i = 1; i < this.colors.length; i++) {
+                                    if (i === 1){
+                                        this.colors[1].color = gradientObj.newColor;
+                                        this.colors[1].percent = gradientObj.percent;
+                                    } else{
+                                        this.colors[i].percent = gradientObj.percent * i;
+                                    } 
+                                    
+                                }
+                                
+                                this.colorize();
+                            }
+                        });
+    
+                        
+                    }
+                    
+                    
+                },
+    
+                // Ta bort färger men behåll första och sista
+                decreaseColors() {
+                    
+                    if (this.colors.length === 2) return
+
+                    const gradientObj = {
+                        // Startvärde för procent (100% dividerat på antal nuvvarande färger)
+                        percent: this.colors[1].percent,
+                        // Startvärde för ny färg är alltid senast tillagda färgen
+                        newColor: this.colors[1].color
+                    }
+    
+                    // Ta bort färgen
+                    gsap.to(gradientObj, { 
+                            percent:  100 / (this.colors.length - 1),
+                            newColor: this.colors[0].color,
+                            duration: 1,
+                            onUpdate: () => {
+                                this.colors[1].color = gradientObj.newColor;
+                                this.colors[1].percent = gradientObj.percent;
+                                this.colorize();
+                            },
+                            onComplete: () => {
+                                this.colors.splice(1, 1);
+                                
+                            }
+                        });
+    
+                   
+                },
+    
+                colorize(){
+                    
+    
+                    // Skapa färgstopp för gradienten
+                    let colorStops = this.colors.flatMap((c) => { 
+                        return [`${c.color} ${c.percent}%`];
+                    });
+    
+    
+                    let backgroundStyle = `conic-gradient(${colorStops.join(', ')})`;
+    
+    
+                    // Skapa conic gradient-stilen med alla färger i colors-arrayen med värdena från objektet
+                    gsap.set(this.$refs.gradient, {background: backgroundStyle});
+                    
+                    
+                },
+    
+                
+                // Skapa gradient-stilen
+                gradientStyle: '',
+                init() {
+                    document.addEventListener('clientCount', (event) => {
+                        if (event.detail > this.colors.length - 2) {
+                            this.increaseColors();
+                        } else {
+                            this.decreaseColors();
+                        }
+                        console.log('clientCount', event.detail);
+                    });
+                    this.colorize();
+                },
+            };
+        }
+    </script>
+</body>
+</html>
