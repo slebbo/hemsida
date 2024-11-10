@@ -140,7 +140,7 @@ func main() {
 
 	// Statisk filserver för frontend
 	http.Handle("/", http.FileServer(http.Dir("./public")))
-	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
+	// http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 
 	fmt.Println("Servern körs på http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
