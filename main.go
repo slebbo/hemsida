@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"os"
+	"github.com/joho/godotenv"
 )
 
 // Broker hanterar klientanslutningar och meddelanden
@@ -113,8 +115,28 @@ func main() {
 	broker := NewBroker()
 	broker.Start() // Starta hanteringen av klientändringar
 	// SSE Endpoint
-	http.Handle("/sse", broker)
+	http.Handle("/sse", broker)	
 
+
+	dotenvPath := os.Getenv("DOTENV_PATH")
+    if dotenvPath == "" {
+        dotenvPath = ".env" // Fallback om ingen specifik sökväg finns
+    }
+
+	
+	// Ladda .env-filen
+	dotenv_err := godotenv.Load(dotenvPath)
+	if dotenv_err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	// Hämta sökvägen från miljövariabeln
+	publicDir := os.Getenv("PUBLIC_DIR")
+	if publicDir == "" {
+		log.Fatal("PUBLIC_DIR is not set in .env")
+	}
+	
+	
 	// Endpoint för att skicka nya meddelanden
 	http.HandleFunc("/update", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -139,7 +161,7 @@ func main() {
 	})
 
 	// Statisk filserver för frontend
-	http.Handle("/", http.FileServer(http.Dir("./public")))
+	http.Handle("/", http.FileServer(http.Dir(publicDir)))
 	// http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 
 	fmt.Println("Servern körs på http://localhost:8080")

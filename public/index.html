@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="sv">
+
 <head>
     <meta charset="UTF-8">
-    <title>SSE Demo med Go (Eventdriven)</title>
+    <title>Tjena, tjena — jag är från Västerås </title>
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -14,26 +16,30 @@
             height: 100vh;
             background-color: #222;
         }
+
         #gradient {
             width: 100vw;
             height: 100vmin;
         }
+
         #controls {
-          opacity: 0;
+            opacity: 0;
         }
-       #output {
+
+        #output {
             position: fixed;
             top: 10px;
             left: 10px;
             color: #fff;
-        } 
+        }
     </style>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <!-- gsap -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 </head>
+
 <body>
-    
+
     <div x-data="gradientComponent()" class="gradient-container">
         <div x-ref="gradient" id="gradient"></div>
         <div id="controls" style="position: fixed; top: 10px; left: 10px; color: #fff;">
@@ -43,23 +49,23 @@
         </div>
         <div id="result"></div>
     </div>
-    
+
     <script>
-        if (typeof(EventSource) !== "undefined") {
+        if (typeof (EventSource) !== "undefined") {
             var source = new EventSource("/sse");
-    
-            source.onmessage = function(event) {
+
+            source.onmessage = function (event) {
                 // Kolla om meddelandet börjar med "clients:"
                 if (event.data.startsWith("clients:")) {
                     var clientCount = event.data.split(":")[1].trim();
                     console.log("Antal anslutna klienter:", clientCount);
-                    document.dispatchEvent(new CustomEvent('clientCount', {detail: clientCount}));
+                    document.dispatchEvent(new CustomEvent('clientCount', { detail: clientCount }));
                 } else {
                     document.getElementById("result").innerHTML += event.data + "<br>";
                 }
             };
-    
-            source.onerror = function(event) {
+
+            source.onerror = function (event) {
                 console.error("SSE-fel:", event);
             };
         } else {
@@ -81,8 +87,8 @@
                     '#b58463', // 9
                     '#997b66'  // 10
                 ],
-                colors: [{color: '#797d62', percent: 0}, {color: '#797d62', percent: 50}], // Initiera med första färgen två gånger
-    
+                colors: [{ color: '#797d62', percent: 0 }, { color: '#797d62', percent: 50 }], // Initiera med första färgen två gånger
+
                 // Lägg till färger i ordning från paletten
                 increaseColors() {
                     if (this.colors.length - 1 < this.palette.length) {
@@ -96,41 +102,41 @@
                         // hämta en färg från paletten
                         const nextColor = this.palette[this.colors.length - 1];
                         // Lägg till färgen i 
-                        this.colors.splice(1, 0, {color: nextColor, percent: 100 / this.colors.length});
-    
+                        this.colors.splice(1, 0, { color: nextColor, percent: 100 / this.colors.length });
+
                         gsap.to(gradientObj, {
                             // Slutvärde är nya längden på färg-arrayen
-                            percent:  100 / this.colors.length,
+                            percent: 100 / this.colors.length,
                             // Slutvärde för ny färg är färgen som lades till
                             newColor: nextColor,
                             duration: 1,
                             onUpdate: () => {
                                 // Uppdatera gradienten
-                                
+
                                 // for-loop för att uppdatera alla färger utom [1] 
                                 for (let i = 1; i < this.colors.length; i++) {
-                                    if (i === 1){
+                                    if (i === 1) {
                                         this.colors[1].color = gradientObj.newColor;
                                         this.colors[1].percent = gradientObj.percent;
-                                    } else{
+                                    } else {
                                         this.colors[i].percent = gradientObj.percent * i;
-                                    } 
-                                    
+                                    }
+
                                 }
-                                
+
                                 this.colorize();
                             }
                         });
-    
-                        
+
+
                     }
-                    
-                    
+
+
                 },
-    
+
                 // Ta bort färger men behåll första och sista
                 decreaseColors() {
-                    
+
                     if (this.colors.length === 2) return
 
                     const gradientObj = {
@@ -139,45 +145,45 @@
                         // Startvärde för ny färg är alltid senast tillagda färgen
                         newColor: this.colors[1].color
                     }
-    
+
                     // Ta bort färgen
-                    gsap.to(gradientObj, { 
-                            percent:  100 / (this.colors.length - 1),
-                            newColor: this.colors[0].color,
-                            duration: 1,
-                            onUpdate: () => {
-                                this.colors[1].color = gradientObj.newColor;
-                                this.colors[1].percent = gradientObj.percent;
-                                this.colorize();
-                            },
-                            onComplete: () => {
-                                this.colors.splice(1, 1);
-                                
-                            }
-                        });
-    
-                   
+                    gsap.to(gradientObj, {
+                        percent: 100 / (this.colors.length - 1),
+                        newColor: this.colors[0].color,
+                        duration: 1,
+                        onUpdate: () => {
+                            this.colors[1].color = gradientObj.newColor;
+                            this.colors[1].percent = gradientObj.percent;
+                            this.colorize();
+                        },
+                        onComplete: () => {
+                            this.colors.splice(1, 1);
+
+                        }
+                    });
+
+
                 },
-    
-                colorize(){
-                    
-    
+
+                colorize() {
+
+
                     // Skapa färgstopp för gradienten
-                    let colorStops = this.colors.flatMap((c) => { 
+                    let colorStops = this.colors.flatMap((c) => {
                         return [`${c.color} ${c.percent}%`];
                     });
-    
-    
+
+
                     let backgroundStyle = `conic-gradient(${colorStops.join(', ')})`;
-    
-    
+
+
                     // Skapa conic gradient-stilen med alla färger i colors-arrayen med värdena från objektet
-                    gsap.set(this.$refs.gradient, {background: backgroundStyle});
-                    
-                    
+                    gsap.set(this.$refs.gradient, { background: backgroundStyle });
+
+
                 },
-    
-                
+
+
                 // Skapa gradient-stilen
                 gradientStyle: '',
                 init() {
@@ -195,4 +201,5 @@
         }
     </script>
 </body>
+
 </html>
