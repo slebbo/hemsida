@@ -28,7 +28,7 @@
         }
 
         #output {
-            position: fixed;
+            position: absolute;
             font-family: monospace;
             top: 50%;
             left: 50%;
@@ -39,12 +39,6 @@
         }
     </style>
 
-    <div x-data="formComponent" class="fixed-form">
-    <form @submit.prevent="submitForm" class="form-container">
-        <input type="text" x-model="message" placeholder="Skriv något..." required class="text-input">
-        <button type="submit" class="submit-button">Skicka</button>
-    </form>
-</div>
 
 <style>
     .fixed-form {
@@ -103,7 +97,7 @@
             <span x-text="colors.length - 2"></span>
             <button @click="increaseColors">+</button>
         </div>
-        <div id="result"></div>
+        <div id="output"></div>
         <div x-data="formComponent" class="fixed-form">
     <form @submit.prevent="submitForm" class="form-container">
         <input name="message" type="text" x-model="message" placeholder="Skriv något..." required class="text-input">
