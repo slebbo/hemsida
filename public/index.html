@@ -106,7 +106,7 @@
         <div id="result"></div>
         <div x-data="formComponent" class="fixed-form">
     <form @submit.prevent="submitForm" class="form-container">
-        <input type="text" x-model="message" placeholder="Skriv något..." required class="text-input">
+        <input name="message" type="text" x-model="message" placeholder="Skriv något..." required class="text-input">
         <button type="submit" class="submit-button">Skicka</button>
     </form>
         </div>
@@ -128,7 +128,7 @@
 
                     if (response.ok) {
                         // Hantera lyckat svar här
-                        alert('Meddelandet skickat!');
+                        console.log('Meddelandet skickat!');
                         this.message = ''; // Rensa fältet efter skickat meddelande
                     } else {
                         // Hantera fel
