@@ -147,7 +147,7 @@
                     console.log("Antal anslutna klienter:", clientCount);
                     document.dispatchEvent(new CustomEvent('clientCount', { detail: clientCount }));
                 } else {
-                    document.getElementById("result").innerHTML += event.data + "<br>";
+                    document.getElementById("output").innerHTML += event.data + "<br>";
                 }
             };
 
