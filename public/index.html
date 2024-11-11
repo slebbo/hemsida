@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tjena, tjena — jag är från Västerås </title>
     <style>
         html,
@@ -28,11 +29,66 @@
 
         #output {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            font-family: monospace;
+            top: 50%;
+            left: 50%;
             color: #fff;
+            font-size: 2vw;
+            z-index: 50;
+            text-align: center;
         }
     </style>
+
+    <div x-data="formComponent" class="fixed-form">
+    <form @submit.prevent="submitForm" class="form-container">
+        <input type="text" x-model="message" placeholder="Skriv något..." required class="text-input">
+        <button type="submit" class="submit-button">Skicka</button>
+    </form>
+</div>
+
+<style>
+    .fixed-form {
+        position: fixed;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 500px;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .form-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .text-input {
+        flex: 1;
+        padding: 8px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px 0 0 4px;
+        outline: none;
+    }
+
+    .submit-button {
+        padding: 8px 16px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        background-color: #005f73;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .submit-button:hover {
+        background-color: #0a9396;
+    }
+</style>
+
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <!-- gsap -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -48,7 +104,43 @@
             <button @click="increaseColors">+</button>
         </div>
         <div id="result"></div>
+        <div x-data="formComponent" class="fixed-form">
+    <form @submit.prevent="submitForm" class="form-container">
+        <input type="text" x-model="message" placeholder="Skriv något..." required class="text-input">
+        <button type="submit" class="submit-button">Skicka</button>
+    </form>
+        </div>
     </div>
+
+    <script>
+    function formComponent() {
+        return {
+            message: '',
+            async submitForm() {
+                try {
+                    let formData = new FormData();
+                    formData.append('message', this.message);
+
+                    const response = await fetch('/update', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        // Hantera lyckat svar här
+                        alert('Meddelandet skickat!');
+                        this.message = ''; // Rensa fältet efter skickat meddelande
+                    } else {
+                        // Hantera fel
+                        alert('Det gick inte att skicka meddelandet.');
+                    }
+                } catch (error) {
+                    console.error('Ett fel inträffade:', error);
+                }
+            },
+        };
+    }
+</script>
 
     <script>
         if (typeof (EventSource) !== "undefined") {
