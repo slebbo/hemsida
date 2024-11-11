@@ -71,7 +71,7 @@
         font-size: 16px;
         font-weight: bold;
         color: white;
-        background-color: #005f73;
+        background-color: black;
         border: none;
         border-radius: 0 4px 4px 0;
         cursor: pointer;
@@ -79,7 +79,7 @@
     }
 
     .submit-button:hover {
-        background-color: #0a9396;
+        background-color: gray;
     }
 </style>
 
@@ -155,7 +155,7 @@
                 console.error("SSE-fel:", event);
             };
         } else {
-            document.getElementById("result").innerHTML = "Tyvärr, din webbläsare stöder inte Server-Sent Events.";
+            document.getElementById("output").innerHTML = "Tyvärr, din webbläsare stöder inte Server-Sent Events.";
         }
     </script>
     <script>
